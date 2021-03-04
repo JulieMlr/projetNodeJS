@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 
+const path = require('path');
+path.dirname('C:/Users/julie/B3_Ynov/DevBack/Projet/projetNodeJS');
 const multer = require("multer");
 
 const multerStorage = multer.diskStorage({
@@ -91,6 +93,16 @@ app.post("/upload/:id", upload.single("file"), async (req, res) => {
       .updateOne({ id: id }, { $set: { image: req.file.filename } });
     console.log(users);
     res.json(users);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+app.get("/image/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  try {
+    const userImage = await db.collection("user").findOne({ id });
+    res.send("<img src='./upload/"+ userImage.image +"' alt='image'/>");
   } catch (err) {
     console.log(err);
   }
