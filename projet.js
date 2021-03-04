@@ -1,6 +1,21 @@
 const express = require("express");
 const app = express();
 
+const multer = require("multer");
+
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./upload/");
+  },
+  filename: (req, file, cb) => {
+    const ext = file.originalname;
+    cb(null, `${ext}`);
+  },
+});
+
+const upload = multer({
+  storage: multerStorage,
+});
 
 const mongoClient = require("mongodb").MongoClient;
 
@@ -13,7 +28,8 @@ mongoClient.connect(url, (err, user) => {
   db = user.db(dbName);
 });
 
-app.use(express.json());
+app.use(express.json()); //permet a express de comprendre le json
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/users", async (req, res) => {
   try {
@@ -61,6 +77,19 @@ app.delete("/users/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const users = await db.collection("user").deleteOne({ id: id });
+    res.json(users);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+app.post("/upload/:id", upload.single("file"), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const users = await db
+      .collection("user")
+      .updateOne({ id: id }, { $set: { image: req.file.filename } });
+    console.log(users);
     res.json(users);
   } catch (err) {
     console.log(err);
